@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Photos – George Kouklakis</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f1a0f;
+      color: #d4e8d4;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    header {
+      padding: 2rem 2rem 1rem;
+      border-bottom: 1px solid #2a4a2a;
+    }
+    header a {
+      color: #5cad5c;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    header a:hover { color: #7dcc7d; }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: #7dcc7d;
+      margin-top: 0.5rem;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .photo-card {
+      background: #1a2a1a;
+      border: 1px solid #2a4a2a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .photo-card img {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      display: block;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .photo-card img:hover { opacity: 0.85; }
+    .caption {
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      color: #9abf9a;
+    }
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 85vh;
+      border-radius: 4px;
+      object-fit: contain;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 1.2rem;
+      right: 1.5rem;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="../">&larr; Back</a>
+    <h1>Photos</h1>
+  </header>
+
+  <div class="gallery">
+    <div class="photo-card">
+      <img src="zug-sunset.jpg" alt="Zug Sunset" onclick="openLightbox(this.src, this.alt)">
+      <div class="caption">Zug – Sunset</div>
+    </div>
+    <div class="photo-card">
+      <img src="zurich-storchen.jpg" alt="Zurich Storchen" onclick="openLightbox(this.src, this.alt)">
+      <div class="caption">Zurich – Storchen</div>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    <img id="lightbox-img" src="" alt="">
+  </div>
+
+  <script>
+    function openLightbox(src, alt) {
+      document.getElementById('lightbox-img').src = src;
+      document.getElementById('lightbox-img').alt = alt;
+      document.getElementById('lightbox').classList.add('open');
+    }
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+  </script>
+</body>
+</html>

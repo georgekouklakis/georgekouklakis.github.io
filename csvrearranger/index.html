@@ -1,49 +1,267 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <title>CSV rearranger</title>
-</head>
-<body>
-  <div class="mb-6">
-    <label for="delimiter" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Delimiter</label>
-    <input id="delimiter" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-  </div>
-  <div class="mb-6">
-    <label for="sequence" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Sequence</label>
-    <input id="sequence" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-  </div>
-  <div class="mb-6">
-    <label for="textarea" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Input</label>
-    <textarea id="textarea" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"></textarea>
-  </div>
-  <div class="mb-6">
-    <label for="result" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Output</label>
-    <textarea id="result" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"></textarea>
-  </div>
-  <div class="mb-6">
-    <button id="go" onclick="rearrangeCSV()" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Go</button>
-  </div>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV Rearranger</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    let rearrangeCSV = function () {
-      let inputRows = document.getElementById('textarea').value;
-      let delimiter = document.getElementById('delimiter').value;
-      let sequence = document.getElementById('sequence').value;
-      let outputRows = [];
+  <style>
+    textarea { resize: vertical; }
+    .tooltip { position: relative; }
+    .tooltip:hover .tooltip-text { display: block; }
+    .tooltip-text {
+      display: none;
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #f1f5f9;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .tooltip-text::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #1e293b;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen py-10 px-4 font-sans">
 
-      inputRows.split('\n').forEach((row) => {
-        var splittedRow = row.split(delimiter);
-        var outputRow = [];
-        sequence.split(',').forEach((index) => {
-          outputRow.push(splittedRow[index-1]);
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">CSV Rearranger</h1>
+      <p class="mt-2 text-gray-500 dark:text-gray-400 text-sm">Reorder, filter, or duplicate columns in any delimiter-separated data</p>
+    </div>
+
+    <!-- Config card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6">
+      <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Configuration</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        <!-- Delimiter -->
+        <div>
+          <label for="delimiter" class="flex items-center gap-1.5 mb-1.5 text-sm font-medium text-gray-700 dark:text-white">
+            Delimiter
+            <span class="tooltip cursor-help text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/>
+              </svg>
+              <span class="tooltip-text">The character separating columns in your data.<br>Common choices: comma (,), semicolon (;), tab (\t), pipe (|)</span>
+            </span>
+          </label>
+          <input id="delimiter" type="text" value="," maxlength="5"
+            placeholder="e.g. , or ; or |"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-500 dark:text-white font-mono" />
+          <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Default: comma (,) — use <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">\t</code> for tab</p>
+        </div>
+
+        <!-- Sequence -->
+        <div>
+          <label for="sequence" class="flex items-center gap-1.5 mb-1.5 text-sm font-medium text-gray-700 dark:text-white">
+            Column order
+            <span class="tooltip cursor-help text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/>
+              </svg>
+              <span class="tooltip-text">Comma-separated column numbers (1-based).<br>Repeat a number to duplicate. Omit to drop a column.<br>Example: "3,1,2" moves col 3 first, then 1, then 2.</span>
+            </span>
+          </label>
+          <input id="sequence" type="text"
+            placeholder="e.g. 3,1,2 or 1,1,3"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-500 dark:text-white font-mono" />
+          <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">1-based column indices — repeat to duplicate, omit to drop</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- IO card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 mb-6">
+      <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Data</h2>
+
+      <div class="mb-5">
+        <label for="textarea" class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-white">Input CSV</label>
+        <textarea id="textarea" rows="7"
+          placeholder="Paste your CSV data here…&#10;&#10;Example:&#10;Alice,30,Engineer&#10;Bob,25,Designer&#10;Carol,35,Manager"
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-3 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-500 dark:text-white font-mono leading-relaxed"></textarea>
+        <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Each line is treated as one row</p>
+      </div>
+
+      <!-- Action row -->
+      <div class="flex items-center gap-3 mb-5">
+        <button id="go" onclick="rearrangeCSV()"
+          class="inline-flex items-center gap-2 text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-6 py-2.5 transition-colors dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+            <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clip-rule="evenodd"/>
+          </svg>
+          Rearrange
+        </button>
+        <button onclick="clearAll()"
+          class="text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 font-medium rounded-lg text-sm px-4 py-2.5 transition-colors">
+          Clear
+        </button>
+        <span id="status" class="text-xs text-gray-400 dark:text-gray-500 ml-auto hidden"></span>
+      </div>
+
+      <!-- Output -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label for="result" class="text-sm font-medium text-gray-700 dark:text-white">Output</label>
+          <button onclick="copyResult()" id="copy-btn"
+            class="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-3.5 h-3.5">
+              <path d="M5.5 3.5A1.5 1.5 0 017 2h2.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 01.439 1.061V9.5A1.5 1.5 0 0112 11V9.5a3 3 0 00-.879-2.121L9 5.257A3 3 0 006.879 4.5H5.5v-1z"/>
+              <path d="M4 5a1.5 1.5 0 00-1.5 1.5v6A1.5 1.5 0 004 14h5a1.5 1.5 0 001.5-1.5V8.621a1.5 1.5 0 00-.44-1.06L7.94 5.439A1.5 1.5 0 006.878 5H4z"/>
+            </svg>
+            Copy
+          </button>
+        </div>
+        <textarea id="result" rows="7" readonly
+          placeholder="Rearranged output will appear here…"
+          class="bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block w-full p-3 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-200 font-mono leading-relaxed cursor-default"></textarea>
+        <div id="error-msg" class="mt-2 text-sm text-red-500 hidden"></div>
+      </div>
+    </div>
+
+    <!-- Example card -->
+    <div class="bg-blue-50 dark:bg-blue-950 border border-blue-100 dark:border-blue-900 rounded-2xl p-5 text-sm text-blue-800 dark:text-blue-300">
+      <p class="font-semibold mb-2">Quick example</p>
+      <p class="mb-1">Input: <code class="bg-blue-100 dark:bg-blue-900 px-1.5 py-0.5 rounded font-mono text-xs">Alice,30,Engineer</code></p>
+      <p class="mb-1">Delimiter: <code class="bg-blue-100 dark:bg-blue-900 px-1.5 py-0.5 rounded font-mono text-xs">,</code> &nbsp; Column order: <code class="bg-blue-100 dark:bg-blue-900 px-1.5 py-0.5 rounded font-mono text-xs">3,1</code></p>
+      <p>Output: <code class="bg-blue-100 dark:bg-blue-900 px-1.5 py-0.5 rounded font-mono text-xs">Engineer,Alice</code> — column 3 first, then 1; column 2 dropped</p>
+      <button onclick="loadExample()" class="mt-3 text-xs underline text-blue-600 dark:text-blue-400 hover:no-underline">Load this example</button>
+    </div>
+
+    <p class="text-center text-xs text-gray-400 dark:text-gray-600 mt-8">Data never leaves your browser.</p>
+  </div>
+
+  <script>
+    function resolveDelimiter(raw) {
+      return raw === '\\t' ? '\t' : raw;
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+
+    function clearError() {
+      document.getElementById('error-msg').classList.add('hidden');
+    }
+
+    function setStatus(msg) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), 2500);
+    }
+
+    function rearrangeCSV() {
+      clearError();
+
+      const rawDelimiter = document.getElementById('delimiter').value;
+      const delimiter = resolveDelimiter(rawDelimiter || ',');
+      const sequenceRaw = document.getElementById('sequence').value.trim();
+      const inputText = document.getElementById('textarea').value;
+
+      if (!inputText.trim()) {
+        showError('Please paste some CSV data in the Input field.');
+        return;
+      }
+
+      if (!sequenceRaw) {
+        showError('Please enter a column order, e.g. "2,1,3".');
+        return;
+      }
+
+      const indices = sequenceRaw.split(',').map(s => {
+        const n = parseInt(s.trim(), 10);
+        return isNaN(n) ? null : n;
+      });
+
+      if (indices.some(i => i === null || i < 1)) {
+        showError('Column order must be comma-separated positive integers, e.g. "3,1,2".');
+        return;
+      }
+
+      const lines = inputText.split('\n');
+      const outputRows = [];
+      let warned = false;
+
+      lines.forEach((row, lineNum) => {
+        if (row === '') {
+          outputRows.push('');
+          return;
+        }
+        const cols = row.split(delimiter);
+        const outCols = indices.map(i => {
+          if (i > cols.length && !warned) {
+            warned = true;
+            showError(`Warning: column ${i} doesn't exist in row ${lineNum + 1} (only ${cols.length} columns). Missing values shown as empty.`);
+          }
+          return cols[i - 1] !== undefined ? cols[i - 1] : '';
         });
-        outputRows.push(outputRow.join(delimiter));
+        outputRows.push(outCols.join(delimiter));
       });
 
       document.getElementById('result').value = outputRows.join('\n');
+      if (!warned) setStatus(`Done — ${lines.length} row(s) processed`);
     }
+
+    function clearAll() {
+      document.getElementById('textarea').value = '';
+      document.getElementById('result').value = '';
+      clearError();
+    }
+
+    async function copyResult() {
+      const val = document.getElementById('result').value;
+      if (!val) return;
+      try {
+        await navigator.clipboard.writeText(val);
+        const btn = document.getElementById('copy-btn');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-3.5 h-3.5"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 01.208 1.04l-5 7.5a.75.75 0 01-1.154.114l-3-3a.75.75 0 011.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 011.04-.207z" clip-rule="evenodd"/></svg> Copied!';
+        setTimeout(() => btn.innerHTML = orig, 2000);
+      } catch {
+        setStatus('Copy failed — select the output and copy manually.');
+      }
+    }
+
+    function loadExample() {
+      document.getElementById('delimiter').value = ',';
+      document.getElementById('sequence').value = '3,1';
+      document.getElementById('textarea').value = 'Alice,30,Engineer\nBob,25,Designer\nCarol,35,Manager';
+      rearrangeCSV();
+    }
+
+    // Rearrange automatically when config changes (debounced)
+    let debounceTimer;
+    ['delimiter', 'sequence', 'textarea'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          if (document.getElementById('textarea').value.trim() &&
+              document.getElementById('sequence').value.trim()) {
+            rearrangeCSV();
+          }
+        }, 400);
+      });
+    });
   </script>
 </body>
 </html>
